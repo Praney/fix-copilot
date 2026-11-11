@@ -1,5 +1,6 @@
 from fix_tools.dictionary import load_tag_names
 
+
 def test_known_tags_map_to_names():
     names = load_tag_names("data/spec/FIX44.xml")
     assert names[35] == "MsgType" 

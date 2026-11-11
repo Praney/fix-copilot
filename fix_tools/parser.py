@@ -1,4 +1,12 @@
+from typing import NamedTuple
+
 SOH = "\x01"
+
+
+class Field(NamedTuple):
+    tag: int
+    name: str | None
+    value: str
 
 
 def split_fields(raw: str) -> list[tuple[int, str]]:
@@ -13,3 +21,10 @@ def split_fields(raw: str) -> list[tuple[int, str]]:
             raise ValueError(f"Malformed FIX field: {piece!r}")
         fields.append((int(tag), value))
     return fields
+
+
+def parse(raw: str, tag_names: dict[int, str]) -> list[Field]:
+    return [
+        Field(tag, tag_names.get(tag), value)
+        for tag, value in split_fields(raw)
+    ]
