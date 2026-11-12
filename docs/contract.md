@@ -4,4 +4,5 @@ Output: {"category", "summary", "root_cause", "evidence": [{"msg_index", "tags":
 "spec_citations": [], "suggested_fix": [], "confidence", "needs_more_info": []}
 Categories: sequence_too_low, sequence_gap, bad_checksum, bad_body_length,
 missing_required_tag, invalid_enum, order_reject, session_reject, business_reject,
-duplicate_clordid, heartbeat_timeout, insufficient_evidence
+duplicate_clordid, heartbeat_timeout, insufficient_evidence,
+malformed_message, missing_checksum, missing_body_length, bad_field_order
