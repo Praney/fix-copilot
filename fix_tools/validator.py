@@ -1,5 +1,7 @@
 from typing import NamedTuple
 
+from fix_tools.parser import split_fields
+
 SOH = "\x01"
 
 
@@ -28,6 +30,7 @@ def check_checksum(raw: str) -> Issue | None:
         return Issue("bad_checksum", f"expected {expected}, message says {claimed}")
     return None
 
+
 def check_body_length(raw: str) -> Issue | None:
     raw = raw.strip()
     if SOH not in raw:
@@ -49,4 +52,22 @@ def check_body_length(raw: str) -> Issue | None:
     actual = (checksum_idx + 1) - (value_end + 1)
     if actual != int(claimed):
         return Issue("bad_body_length", f"expected {actual}, message says {claimed}")
+    return None
+
+
+def check_field_order(raw: str) -> Issue | None:
+    try:
+        tags = [tag for tag, _ in split_fields(raw)]
+    except ValueError as exc:
+        return Issue("malformed_message", str(exc))
+    if tags[:3] != [8, 9, 35]:
+        return Issue(
+            "bad_field_order",
+            f"BeginString (8), BodyLength (9), MsgType (35) must come first, found {tags[:3]}",
+        )
+    if tags[-1:] != [10]:
+        return Issue(
+            "bad_field_order",
+            f"CheckSum (10) must be the last field, found {tags[-1:]}",
+        )
     return None
