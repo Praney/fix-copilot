@@ -1,6 +1,20 @@
-from fix_tools.validator import check_checksum
+from fix_tools.validator import check_body_length, check_checksum
 
 HEARTBEAT = "8=FIX.4.4|9=5|35=0|10=163|" 
+
+def test_valid_body_length_returns_none():
+    assert check_body_length(HEARTBEAT) is None
+
+
+def test_wrong_body_length_is_flagged():
+    issue = check_body_length("8=FIX.4.4|9=6|35=0|10=163|")
+    assert issue.code == "bad_body_length"
+    assert "5" in issue.message and "6" in issue.message
+
+
+def test_missing_body_length_is_flagged():
+    assert check_body_length("8=FIX.4.4|35=0|10=163|").code == "missing_body_length"
+
 def test_valid_checksum_returns_none():
     assert check_checksum(HEARTBEAT) is None 
 
