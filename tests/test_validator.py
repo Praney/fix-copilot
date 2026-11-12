@@ -3,6 +3,7 @@ from fix_tools.validator import (
     check_checksum,
     check_field_order,
     compute_checksum,
+    validate_message,
 )
 
 HEARTBEAT = "8=FIX.4.4|9=5|35=0|10=163|" 
@@ -73,3 +74,21 @@ def test_checksum_not_last():
 
 def test_malformed_field_is_reported_not_raised():
     assert check_field_order("35A|").code == "malformed_message"
+
+
+def test_valid_message_has_no_issues():
+    assert validate_message(HEARTBEAT) == []
+
+
+def test_collects_every_issue():
+    codes = {i.code for i in validate_message("8=FIX.4.4|9=6|35=1|10=163|")}
+    assert codes == {"bad_body_length", "bad_checksum"}
+
+
+def test_garbage_does_not_crash():
+    assert validate_message("not a fix message") != []
+
+
+def test_duplicate_issues_are_removed():
+    codes = [i.code for i in validate_message("8=FIX.4.4|9=5|35=0|")]
+    assert codes.count("missing_checksum") == 1

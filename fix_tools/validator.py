@@ -71,3 +71,13 @@ def check_field_order(raw: str) -> Issue | None:
             f"CheckSum (10) must be the last field, found {tags[-1:]}",
         )
     return None
+
+
+def validate_message(raw: str) -> list[Issue]:
+    results = (
+        check_field_order(raw),
+        check_checksum(raw),
+        check_body_length(raw),
+    )
+    issues = [issue for issue in results if issue is not None]
+    return list(dict.fromkeys(issues))
