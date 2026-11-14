@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+from fix_tools.dictionary import load_required_fields, load_tag_names
 from fix_tools.parser import split_fields
 
 SOH = "\x01"
@@ -103,3 +104,20 @@ def check_required_fields(
     return Issue("missing_required_tag", f"{msgtype} is missing: {listed}")
 
 
+
+
+class Validator:
+    def __init__(self, required: dict[str, set[int]], tag_names: dict[int, str]):
+        self.required = required
+        self.tag_names = tag_names
+
+    @classmethod
+    def from_dictionary(cls, path: str) -> "Validator":
+        return cls(load_required_fields(path), load_tag_names(path))
+
+    def validate(self, raw: str) -> list[Issue]:
+        issues = validate_message(raw)
+        content = check_required_fields(raw, self.required, self.tag_names)
+        if content is not None:
+            issues.append(content)
+        return list(dict.fromkeys(issues))
