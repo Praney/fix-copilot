@@ -13,3 +13,8 @@
 - A real broken message often has several faults (an edited message breaks length and checksum).
 - Identical issues (same code and message) are collapsed, keeping first occurrence and order.
 - Malformed input is reported as an Issue, never raised.
+
+## Decision 5: Validator class holds the loaded dictionary
+- The XML is parsed once; rules are passed in so tests use tiny dictionaries.
+- validate() runs structural checks plus required-field checks and de-duplicates.
+- The agent will hold one Validator instance and expose validate() as a tool.
