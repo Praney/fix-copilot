@@ -2,6 +2,7 @@ from fix_tools.validator import (
     check_body_length,
     check_checksum,
     check_field_order,
+    check_required_fields,
     compute_checksum,
     validate_message,
 )
@@ -92,3 +93,31 @@ def test_garbage_does_not_crash():
 def test_duplicate_issues_are_removed():
     codes = [i.code for i in validate_message("8=FIX.4.4|9=5|35=0|")]
     assert codes.count("missing_checksum") == 1
+
+
+RULES = {"D": {11, 54}}
+NAMES = {11: "ClOrdID", 54: "Side"}
+
+
+def test_all_required_present():
+    assert check_required_fields("8=FIX.4.4|35=D|11=A|54=1|", RULES, NAMES) is None
+
+
+def test_missing_tag_is_listed_with_name():
+    issue = check_required_fields("8=FIX.4.4|35=D|54=1|", RULES, NAMES)
+    assert issue.code == "missing_required_tag"
+    assert "11 (ClOrdID)" in issue.message
+
+
+def test_all_missing_tags_in_one_issue():
+    issue = check_required_fields("8=FIX.4.4|35=D|", RULES, NAMES)
+    assert "11" in issue.message and "54" in issue.message
+
+
+def test_unknown_msg_type():
+    issue = check_required_fields("8=FIX.4.4|35=ZZ|", RULES, NAMES)
+    assert issue.code == "unknown_msg_type"
+
+
+def test_missing_msg_type():
+    assert check_required_fields("8=FIX.4.4|", RULES, NAMES).code == "missing_msg_type"

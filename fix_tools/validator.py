@@ -81,3 +81,25 @@ def validate_message(raw: str) -> list[Issue]:
     )
     issues = [issue for issue in results if issue is not None]
     return list(dict.fromkeys(issues))
+
+
+def check_required_fields(
+    raw: str, required: dict[str, set[int]], tag_names: dict[int, str]
+) -> Issue | None:
+    try:
+        fields = split_fields(raw)
+    except ValueError as exc:
+        return Issue("malformed_message", str(exc))
+    present = {tag for tag, _ in fields}
+    msgtype = next((value for tag, value in fields if tag == 35), None)
+    if msgtype is None:
+        return Issue("missing_msg_type", "No MsgType (35) field found")
+    if msgtype not in required:
+        return Issue("unknown_msg_type", f"Unknown MsgType (35): {msgtype!r}")
+    missing = sorted(required[msgtype] - present)
+    if not missing:
+        return None
+    listed = ", ".join(f"{tag} ({tag_names.get(tag, '?')})" for tag in missing)
+    return Issue("missing_required_tag", f"{msgtype} is missing: {listed}")
+
+
